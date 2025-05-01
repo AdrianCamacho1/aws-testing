@@ -22,7 +22,7 @@ const Form = () => {
     setStatus("Submitting...");
 
     try {
-      const response = await fetch("https://your-api-id.execute-api.your-region.amazonaws.com/form-submit", {
+      const response = await fetch("https://q6ge4tj1fl.execute-api.us-east-2.amazonaws.com/dev", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
