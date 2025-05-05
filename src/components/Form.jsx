@@ -1,17 +1,16 @@
-import React, { useState } from "react";
+import { useState } from 'react';
 
 const Form = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: ""
+    name: '',
+    email: '',
+    message: ''
   });
-  
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
+    setFormData(prevData => ({
       ...prevData,
       [name]: value
     }));
@@ -19,98 +18,92 @@ const Form = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus("Submitting...");
-
+    setStatus('submitting');
+    
     try {
-      const response = await fetch("https://q6ge4tj1fl.execute-api.us-east-2.amazonaws.com/dev", {
-        method: "POST",
+      // Use the proxy URL instead of the direct AWS URL
+      const response = await fetch('/api', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData)
       });
-
-      if (response.ok) {
-        setStatus("Submission successful!");
-        setFormData({ name: "", email: "", message: "" }); // Reset form after success
-      } else {
-        setStatus("Error: Could not submit form.");
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
+      
+      const data = await response.json();
+      console.log('Success:', data);
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '' });
     } catch (error) {
-      console.error("Error submitting form:", error);
-      setStatus("Network error. Please try again.");
+      console.error('Error submitting form:', error);
+      setStatus('error');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={formStyle}>
-      <h2>Submit Your Information</h2>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-center">Contact Us</h2>
       
-      <input
-        type="text"
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        placeholder="Your Name"
-        required
-        style={inputStyle}
-      />
+      <div className="mb-4">
+        <label htmlFor="name" className="block mb-2 text-sm font-medium">Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
       
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="Your Email"
-        required
-        style={inputStyle}
-      />
+      <div className="mb-4">
+        <label htmlFor="email" className="block mb-2 text-sm font-medium">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
       
-      <textarea
-        name="message"
-        value={formData.message}
-        onChange={handleChange}
-        placeholder="Your Message"
-        rows="5"
-        required
-        style={textareaStyle}
-      />
+      <div className="mb-6">
+        <label htmlFor="message" className="block mb-2 text-sm font-medium">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
+          required
+          rows="4"
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ></textarea>
+      </div>
       
-      <button type="submit" style={buttonStyle}>Submit</button>
-      <p>{status}</p>
+      <button
+        type="submit"
+        disabled={status === 'submitting'}
+        className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-blue-300"
+      >
+        {status === 'submitting' ? 'Sending...' : 'Submit'}
+      </button>
+      
+      {status === 'success' && (
+        <p className="mt-4 text-green-600 text-center">Message sent successfully!</p>
+      )}
+      
+      {status === 'error' && (
+        <p className="mt-4 text-red-600 text-center">Error sending message. Please try again.</p>
+      )}
     </form>
   );
-};
-
-// Inline styles for simplicity (you can also use CSS or styled-components)
-const formStyle = {
-  maxWidth: "600px",
-  margin: "2rem auto",
-  padding: "1.5rem",
-  backgroundColor: "#fff",
-  borderRadius: "8px",
-  boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)"
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "0.75rem",
-  marginTop: "1rem",
-  boxSizing: "border-box"
-};
-
-const textareaStyle = {
-  ...inputStyle,
-  minHeight: "120px"
-};
-
-const buttonStyle = {
-  marginTop: "1rem",
-  padding: "0.75rem 1.5rem",
-  backgroundColor: "#007acc",
-  color: "white",
-  border: "none",
-  cursor: "pointer"
 };
 
 export default Form;
