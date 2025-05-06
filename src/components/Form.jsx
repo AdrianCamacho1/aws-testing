@@ -7,6 +7,7 @@ const Form = () => {
     message: ''
   });
   const [status, setStatus] = useState(null);
+  const [errorDetails, setErrorDetails] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,9 +20,12 @@ const Form = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('submitting');
+    setErrorDetails('');
     
     try {
-      // Use the proxy URL instead of the direct AWS URL
+      // The /api path will be handled by either:
+      // - Vite's proxy in development
+      // - Netlify's redirect in production
       const response = await fetch('/api', {
         method: 'POST',
         headers: {
@@ -31,6 +35,8 @@ const Form = () => {
       });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`HTTP error! Status: ${response.status}, Response: ${errorText}`);
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
@@ -41,6 +47,7 @@ const Form = () => {
     } catch (error) {
       console.error('Error submitting form:', error);
       setStatus('error');
+      setErrorDetails(error.message || 'Unknown error occurred');
     }
   };
 
@@ -100,7 +107,10 @@ const Form = () => {
       )}
       
       {status === 'error' && (
-        <p className="mt-4 text-red-600 text-center">Error sending message. Please try again.</p>
+        <div className="mt-4 text-red-600 text-center">
+          <p>Error sending message. Please try again.</p>
+          {errorDetails && <p className="text-sm mt-1">{errorDetails}</p>}
+        </div>
       )}
     </form>
   );
